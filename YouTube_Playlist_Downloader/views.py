@@ -177,8 +177,6 @@ def homeSingle(request):
 
 # Handling Playlist page
 def homePlaylist(request):
-    # param dictionary will be send to template within the dictionary
-    param = {}
     # checking METHOD is POST or not and URL entered or not
     if request.method == 'POST' and request.POST.get('playlist_link_name'):
         URL = request.POST.get('playlist_link_name')
@@ -197,122 +195,191 @@ def homePlaylist(request):
 
         # if everything goes right then proceed to get all video link from watch window web page
         allVideoList = giveMeAllVideoList(watch_window_link)
-
-        # video_number variable helps to remember current video number
-        video_number = 1
-
-        # looping through allVideoList[] and ultimate goal is get video_title, video_thumbnail, video_number, video_download_link
-        for item in allVideoList:
-
-            # this list will be set as value of key title, and a single titile will hold [video no, thumbnail, download link]
-            value_list = []
-
-            # creating Youtube object using pytube.YouTube
-            yt = YouTube(item)
-            video_title = yt.streams.filter(progressive=True, file_extension='mp4').order_by(
-                'resolution').desc().first().title
-
-            # making copy of the title because i don't want to prefix the real title with video no
-            video_title_copy = video_title
-
-            # this variable will hold video link temporary
-            video_link = ""
-            # this variable will hold title URL encoded value
-            video_title_url_encoded = ""
-            # this variable will hold final video download link video link + title URL encoded
-            video_final_link = ""
-
-            # checking user wants to prefix title with number or not
-            if not request.POST.get("prefix") == None:
-                video_title = str(video_number) + ". " + video_title + ""
-
-            # getting the quality selected by user in a variable
-            video_quality = request.POST.get("playlist_quality")
-
-            # handling every resolution
-            if video_quality == '720':
-                try:
-                    # execute this code if 720p is selected and if 720 isn't available then go to catch
-                    # i am handling download link here because user can uncheck reduce quality if not exist
-                    # in this case output will be blank in text area but title thumbnail will be available but video will be not downloadable
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p').url
-                    video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                    video_final_link = video_link + "&title=" + video_title_url_encoded
-                except Exception as e:
-                    if not request.POST.get("reduce") is None:
-                        video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                        video_final_link = video_link + "&title=" + video_title_url_encoded
-                    else:
-                        video_link = ""
-            elif video_quality == '480':
-                try:
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('480p').url
-                    video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                    video_final_link = video_link + "&title=" + video_title_url_encoded
-                except Exception as e:
-                    if not request.POST.get("reduce") is None:
-                        video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                        video_final_link = video_link + "&title=" + video_title_url_encoded
-                    else:
-                        video_link = ""
-            elif video_quality == '360':
-                try:
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p').url
-                    video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                    video_final_link = video_link + "&title=" + video_title_url_encoded
-                except Exception as e:
-                    if not request.POST.get("reduce") is None:
-                        video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                        video_final_link = video_link + "&title=" + video_title_url_encoded
-                    else:
-                        video_link = ""
-            elif video_quality == '240':
-                try:
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('240p').url
-                    video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                    video_final_link = video_link + "&title=" + video_title_url_encoded
-                except Exception as e:
-                    if not request.POST.get("reduce") is None:
-                        video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                        video_final_link = video_link + "&title=" + video_title_url_encoded
-                    else:
-                        video_link = ""
-            elif video_quality == '144':
-                try:
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('144p').url
-                    video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                    video_final_link = video_link + "&title=" + video_title_url_encoded
-                except Exception as e:
-                    if not request.POST.get("reduce") is None:
-                        video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-                        video_final_link = video_link + "&title=" + video_title_url_encoded
-                    else:
-                        video_link = ""
-
-            # getting video thumbnail
-            video_thumbnail = YouTube(item).thumbnail_url
-            # creating a list of these data
-            value_list.append(video_number)
-            value_list.append(video_thumbnail)
-            value_list.append(video_final_link)
-            print(str(video_number) + " " + video_final_link)
-            # creating key value pair { title : [ video_number, video_thumbnail, video_final_link] }
-            param[video_title_copy] = value_list
-            # increase video number
-            video_number += 1
-            # if video_number % 50 == 0:
-            #     time.sleep(1)
-
-        # this dictionary will be send to template
-        # passing a new line char to print after one link is printed
-        data_dict = {'dictionary': param, 'new_line': "\n"}
-        # finally return
-        return render(request, 'home/playlist.html', data_dict)
+        data = {'allVideoList' : allVideoList}
+        return JsonResponse(data)
 
     # return statement for without POST request
     return render(request, 'home/playlist.html')
+
+
+def playlistAjax(request):
+    if request.method == 'GET' and request.GET.get('video_link'):
+        video_link =  request.GET.get('video_link')
+        # creating Youtube object using pytube.YouTube
+        yt = YouTube(video_link)
+        video_title = yt.title
+        # making copy of the title because i don't want to prefix the real title with video no
+        video_title_copy = video_title
+        # getting video thumbnail
+        video_thumbnail = yt.thumbnail_url
+
+        # getting video download url
+        video_link = ""
+
+        video_quality = request.GET.get('video_quality')
+
+        # handling every resolution
+        if video_quality == '720':
+            try:
+                # execute this code if 720p is selected and if 720 isn't available then go to catch
+                # i am handling download link here because user can uncheck reduce quality if not exist
+                # in this case output will be blank in text area but title thumbnail will be available but video will be not downloadable
+                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p').url
+            except Exception as e:
+                if request.GET.get("reduce") == 'true':
+                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+                else:
+                    video_link = ""
+        elif video_quality == '480':
+            try:
+                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(135).url
+            except Exception as e:
+                if request.GET.get("reduce") == 'true':
+                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+                else:
+                    video_link = ""
+        elif video_quality == '360':
+            try:
+                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p').url
+            except Exception as e:
+                if request.GET.get("reduce") == 'true':
+                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+                else:
+                    video_link = ""
+        elif video_quality == '240':
+            try:
+                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(133).url
+            except Exception as e:
+                if request.GET.get("reduce") == 'true':
+                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+                else:
+                    video_link = ""
+        elif video_quality == '144':
+            try:
+                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(160).url
+            except Exception as e:
+                if request.GET.get("reduce") == 'true':
+                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+                else:
+                    video_link = ""
+
+        # title prefix if option selected
+        if request.GET.get('prefix') == 'true':
+            video_title = str(int(request.GET.get('video_no')) + 1) + ". " + video_title
+        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+        video_download_url = video_link + "&title=" + video_title_url_encoded
+
+
+        data = {
+            'video_number' : int(request.GET.get('video_no')) + 1,
+            'video_title' : video_title_copy,
+            'video_thumbnail' : video_thumbnail,
+            'video_download_url' : video_download_url
+        }
+        return JsonResponse(data)
+
+
+
+
+
+
+
+
+            # # making copy of the title because i don't want to prefix the real title with video no
+            # video_title_copy = video_title
+            #
+            # # this variable will hold video link temporary
+            # video_link = ""
+            # # this variable will hold title URL encoded value
+            # video_title_url_encoded = ""
+            # # this variable will hold final video download link video link + title URL encoded
+            # video_final_link = ""
+            #
+            # # checking user wants to prefix title with number or not
+            # if not request.POST.get("prefix") == None:
+            #     video_title = str(video_number) + ". " + video_title + ""
+            #
+            # # getting the quality selected by user in a variable
+            # video_quality = request.POST.get("playlist_quality")
+
+            # handling every resolution
+            # if video_quality == '720':
+            #     try:
+            #         # execute this code if 720p is selected and if 720 isn't available then go to catch
+            #         # i am handling download link here because user can uncheck reduce quality if not exist
+            #         # in this case output will be blank in text area but title thumbnail will be available but video will be not downloadable
+            #         video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p').url
+            #         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #         video_final_link = video_link + "&title=" + video_title_url_encoded
+            #     except Exception as e:
+            #         if not request.POST.get("reduce") is None:
+            #             video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+            #             video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #             video_final_link = video_link + "&title=" + video_title_url_encoded
+            #         else:
+            #             video_link = ""
+            # elif video_quality == '480':
+            #     try:
+            #         video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('480p').url
+            #         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #         video_final_link = video_link + "&title=" + video_title_url_encoded
+            #     except Exception as e:
+            #         if not request.POST.get("reduce") is None:
+            #             video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+            #             video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #             video_final_link = video_link + "&title=" + video_title_url_encoded
+            #         else:
+            #             video_link = ""
+            # elif video_quality == '360':
+            #     try:
+            #         video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p').url
+            #         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #         video_final_link = video_link + "&title=" + video_title_url_encoded
+            #     except Exception as e:
+            #         if not request.POST.get("reduce") is None:
+            #             video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+            #             video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #             video_final_link = video_link + "&title=" + video_title_url_encoded
+            #         else:
+            #             video_link = ""
+            # elif video_quality == '240':
+            #     try:
+            #         video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('240p').url
+            #         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #         video_final_link = video_link + "&title=" + video_title_url_encoded
+            #     except Exception as e:
+            #         if not request.POST.get("reduce") is None:
+            #             video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+            #             video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #             video_final_link = video_link + "&title=" + video_title_url_encoded
+            #         else:
+            #             video_link = ""
+            # elif video_quality == '144':
+            #     try:
+            #         video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('144p').url
+            #         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #         video_final_link = video_link + "&title=" + video_title_url_encoded
+            #     except Exception as e:
+            #         if not request.POST.get("reduce") is None:
+            #             video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
+            #             video_title_url_encoded = urllib.parse.quote(video_title, safe="")
+            #             video_final_link = video_link + "&title=" + video_title_url_encoded
+            #         else:
+            #             video_link = ""
+
+
+        #     # creating a list of these data
+        #     value_list.append(video_number)
+        #     value_list.append(video_thumbnail)
+        #     value_list.append(video_final_link)
+        #     print(str(video_number) + " " + video_final_link)
+        #     # creating key value pair { title : [ video_number, video_thumbnail, video_final_link] }
+        #     param[video_title_copy] = value_list
+        #     # increase video number
+        #     video_number += 1
+        #     # if video_number % 50 == 0:
+        #     #     time.sleep(1)
+        #
+        #     # this dictionary will be send to template
+        #     # passing a new line char to print after one link is printed
+        # data_dict = {'dictionary': param, 'new_line': "\n"}

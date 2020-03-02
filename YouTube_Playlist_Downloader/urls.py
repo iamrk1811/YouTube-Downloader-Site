@@ -21,5 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.homeSingle),
     path('playlist/', views.homePlaylist),
+    path('playlist-ajax/', views.playlistAjax),
+
 
 ]
