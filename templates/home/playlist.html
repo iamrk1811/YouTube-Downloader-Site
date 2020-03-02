@@ -1,0 +1,81 @@
+{% extends 'home/basic.html' %}
+{% load static %}
+{% block title %}YouTube Playlist Downloader - Playlist{% endblock %}
+{% block body %}
+
+<div class="load-container">
+    <div class="load d-none" id="page_pre_loader">
+        <hr />
+        <hr />
+        <hr />
+        <hr />
+        <h5>Please Wait ...</h5>
+    </div>
+</div>
+
+<div class="playlist-input-container pb-5" id="playlist-input-container">
+    <div class="container">
+        <div class="container">
+            <div class="form-and-playlist-result">
+                <form action="" method="POST" class="my-5">
+                    {% csrf_token %}
+                    <label for="playlist">
+                        <h4>YouTube Playlist Downloader by RK</h4>
+                    </label> <br>
+                    <label for="nothing">
+                        <p>Download playlist from YouTube is very easy now ! <a href="#">How to use ?</a></p>
+                    </label>
+                    <div class="form-group">
+                        <input name="playlist_link_name" type="text" class="form-control"
+                            placeholder="https://www.youtube.com/playlist?list=PLTjRvDozrdlynYXGUfyyMZdrQ0Sz27aud">
+                    </div>
+                    <label for="quality">Quality: </label>
+                    <select name="playlist_quality" class="playlist_quality">
+                        <option value="720">720p</option>
+                        <option value="480">480p</option>
+                        <option value="360">360p</option>
+                        <option value="240">240p</option>
+                        <option value="144">144p</option>
+                    </select>
+                    <label for="video_prefix_with_number">Prefix with number</label>
+                    <input class="after-playlist-input" name="prefix" type="checkbox" value="video_prefix_with_number" checked>
+                    <label for="reduce_quality">Auto reduce Quality if not exist</label>
+                    <input class="after-playlist-input" name="reduce" type="checkbox" value="reduce_quality" checked>
+                    
+                    <div class="form-grou">
+                        <button type="submit" id="playlist_submit_button">Download</button>
+                    </div>
+                </form>
+                <h6>Tip 1: Ctrl + A copy and go FDM ->Menu -> Paste urls from clipboard it easy and simple now!</h6>
+                <h6>Tip 2: Ctrl + A copy and go IDM ->Tasks -> Add batch download from clipboard it easy and simple now!</h6>
+                <textarea class="form-control playlist-result-area"
+                    rows="10">{% for key, value in dictionary.items %}{{value.2}}{{new_line}}{% endfor %}</textarea>
+            </div>
+            <!-- code -->
+            <div class="single-single-video mt-5">
+                <table class="w-100">
+                    <col width="70">
+                    <col width="100">
+                    <col width="">
+                    <col width="80">
+                    <tr>
+                        <th>Sl No</th>
+                        <th>Thumbnail</th>
+                        <th>Title</th>
+                        <th>Download</th>
+                    </tr>
+                    {% for key, value in dictionary.items %}
+                        <tr>
+                            <td>{{value.0}}</td>
+                            <td><img class="img-fluid thumbnail py-2" src="{{value.1}}" alt="thumbnail"></td>
+                            <td>{{key}}</td>
+                            <td><a href="{{value.2}}"><button class="download-button">Download</button></a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

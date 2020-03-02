@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* background-color: #F7F7F7 !important; */
+}
+
+/* page preloader by Martha Liliana Ospina */
+.load {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /*change these sizes to fit into your project*/
+    width: 100px;
+    height: 100px;
+}
+
+.load hr {
+    border: 0;
+    margin: 0;
+    width: 40%;
+    height: 40%;
+    position: absolute;
+    border-radius: 50%;
+    animation: spin 2s ease infinite
+}
+
+.load :first-child {
+    background: #19A68C;
+    animation-delay: -1.5s
+}
+
+.load :nth-child(2) {
+    background: #F63D3A;
+    animation-delay: -1s
+}
+
+.load :nth-child(3) {
+    background: #FDA543;
+    animation-delay: -0.5s
+}
+
+.load :nth-child(4) {
+    background: #193B48
+}
+.load-container .load h5{
+    width: 130px !important;
+    margin-top: 110px;
+}
+@keyframes spin {
+
+    0%,
+    100% {
+        transform: translate(0)
+    }
+
+    25% {
+        transform: translate(160%)
+    }
+
+    50% {
+        transform: translate(160%, 160%)
+    }
+
+    75% {
+        transform: translate(0, 160%)
+    }
+}
+/* end page preloader */
+
+/* Playlist CSS START */
+.form-and-playlist-result{
+    font-family: 'Roboto', Arial;
+}
+.form-and-playlist-result form input{
+    caret-color: #26de81;
+    color: #26de81 !important;
+    font-size: 18px;
+    -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+
+}
+.form-and-playlist-result textarea{
+    color: #26de81 !important;
+    -webkit-box-shadow: 10px 10px 29px -20px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 29px -20px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 29px -20px rgba(0,0,0,0.75);
+}
+.form-and-playlist-result #playlist_submit_button{
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-right: 40px;
+    padding-left: 40px;
+    font-weight: 500;
+    font-size: 20px;
+}
+.form-and-playlist-result button{
+    outline: none;
+    background: transparent;
+    border: 2px solid #26de81;
+    border-radius: 10px;
+    color: #26de81;
+    -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+}
+.form-and-playlist-result button:hover{
+    border: 2px solid #26de81;
+    color: #fff;
+    background-color: #26de81;
+    
+}
+.form-and-playlist-result form label h5, .form-and-playlist-result form label p{
+    margin: 0;
+}
+.form-and-playlist-result form .after-playlist-input{
+    margin-right: 20px;   
+}
+.form-and-playlist-result .playlist_quality{
+    width: 150px;
+}
+.thumbnail{
+    width: 90px !important;
+    height: 60px !important;
+}
+.download-button{
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-right: 20px;
+    padding-left: 20px;
+    font-weight: 500;
+    font-size: 14px;
+    background: transparent;
+    border: 2px solid #26de81;
+    border-radius: 10px;
+    color: #26de81;
+    -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+}
+.download-button:hover{
+    border: 2px solid #26de81;
+    color: #fff;
+    background-color: #26de81;
+}
+/* Playlist CSS END */
+
+/* Single CSS START */
+.single-container .single-link-container form{
+    width: 75%;
+    margin: 0 auto;
+    font-family: 'Roboto', Arial;
+    font-size: 20px;
+}
+.single-container .single-link-container form input{
+    caret-color: #26de81;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border: 2px solid #26de81;
+    border-right: none;
+    color: #26de81;
+    font-weight: 500;
+    background: transparent;
+    font-size: 20px;
+    -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+}
+.single-container .single-link-container .single-link-submit-button{
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: 2px solid #26de81;
+    color: #26de81;
+    font-weight: 500;
+    background: transparent;
+}
+
+/* Single CSS END */
+
+
+/* Media Query START*/
+@media screen and (max-width: 992px ){
+    .single-container .single-link-container form{
+        width: 100%;
+    }
+}
+@media screen and (max-width: 776px){
+     
+}
+
+/* Media for less than 576px */
+@media screen and (max-width: 576px){
+    
+}
+/* Medua Query END */

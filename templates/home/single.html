@@ -1,0 +1,48 @@
+{% extends 'home/basic.html' %}
+{% block title %}YouTube Playlist Downloader - Single{% endblock %}
+{% block body %}
+{% load static %}
+<div class="single-container my-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="single-link-container">
+                    <form action="" method="POST" id="single_form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input type="text" id="single_video_input" class="form-control"
+                                    placeholder="https://www.youtube.com/watch?v=NhF4SPmC0yw">
+                                <div class="input-group-append">
+                                    <button class="single-link-submit-button">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="single-result-container">
+                    <div class="row">
+                        <div class="col-12 col-md-5">
+                            <div class="single-result-thumbnail-container" id="single_video_thumbnail_id">                               
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-7">
+                            <div class="single-result-details-container">
+                                <div class="single-video-title">
+                                    <h6 id="single_video_title_id"></h6>
+                                </div>
+                                <div class="single-video-time" id="single_video_time_id">                                   
+                                </div>
+                                <div class="single-video-download" id="single_video_download_id">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
