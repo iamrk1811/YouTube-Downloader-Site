@@ -9,7 +9,7 @@
         <hr />
         <hr />
         <hr />
-        <h5>Please Wait ...</h5>
+        <!-- <h5>Please Wait ...</h5> -->
     </div>
 </div>
 
@@ -23,11 +23,10 @@
                         <h4>YouTube Playlist Downloader by RK</h4>
                     </label> <br>
                     <label for="nothing">
-                        <p>Download playlist from YouTube is very easy now ! <a href="#">How to use ?</a></p>
+                        <p>Download playlist from YouTube is very easy now ! <a href="/how-to-use">How to use ?</a></p>
                     </label>
                     <div class="form-group">
-                        <input name="playlist_link_name" type="text" class="form-control"
-                            id="playlist_link_id"
+                        <input name="playlist_link_name" type="text" class="form-control" id="playlist_link_id"
                             placeholder="https://www.youtube.com/playlist?list=PLTjRvDozrdlynYXGUfyyMZdrQ0Sz27aud">
                     </div>
                     <label for="quality">Quality: </label>
@@ -39,18 +38,28 @@
                         <option value="144">144p No Audio</option>
                     </select>
                     <label for="video_prefix_with_number">Prefix with number</label>
-                    <input id="prefix_id" class="after-playlist-input" name="prefix" type="checkbox" value="video_prefix_with_number" checked>
+                    <input id="prefix_id" class="after-playlist-input" name="prefix" type="checkbox"
+                        value="video_prefix_with_number" checked>
                     <label for="reduce_quality">Auto reduce Quality if not exist</label>
-                    <input id="reduce_id" class="after-playlist-input" name="reduce" type="checkbox" value="reduce_quality" checked>
-                    
+                    <input id="reduce_id" class="after-playlist-input" name="reduce" type="checkbox"
+                        value="reduce_quality" checked>
+
                     <div class="form-grou">
                         <button type="submit" id="playlist_submit_button">Download</button>
                     </div>
                 </form>
-                <h6>Tip 1: Ctrl + A copy and go FDM ->Menu -> Paste urls from clipboard it easy and simple now!</h6>
-                <h6>Tip 2: Ctrl + A copy and go IDM ->Tasks -> Add batch download from clipboard it easy and simple now!</h6>
-                <textarea class="form-control playlist-result-area"
-                    rows="10" id="playlist_result_area_id">{% for key, value in dictionary.items %}{{value.2}}{{new_line}}{% endfor %}</textarea>
+                <div id="playlist_result_container_id">
+                    <h6>Tip 1: Ctrl + A copy and go FDM ->Menu -> Paste urls from clipboard it easy and simple now!</h6>
+                    <h6>Tip 2: Ctrl + A copy and go IDM ->Tasks -> Add batch download from clipboard it easy and simple
+                        now!
+                    </h6>
+                    <textarea class="form-control playlist-result-area mb-4" rows="10"
+                        id="playlist_result_area_id"></textarea>
+                    <div class="prog-container">
+                        <div class="prog" id="prog">
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- code -->
             <div class="single-single-video mt-5" id="single_single_video_id">

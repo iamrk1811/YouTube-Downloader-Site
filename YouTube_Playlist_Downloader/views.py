@@ -126,9 +126,18 @@ def homeSingle(request):
         single_video_id = giveMeVideoID(URL)
         if not single_video_id is None:
             yt = YouTube("https://www.youtube.com/watch?v=" + single_video_id)
-
             video_title = yt.title
-            dictionary = {'title': yt.title, 'time': yt.length, 'thumbnail': yt.thumbnail_url}
+
+            seconds = yt.length
+            seconds = seconds % (24 * 3600)
+            hour = seconds // 3600
+            seconds %= 3600
+            minutes = seconds // 60
+            seconds %= 60
+
+            time = str(hour) + ":" + str(minutes) + ":" + str(seconds)
+
+            dictionary = {'title': yt.title, 'time': time, 'thumbnail': yt.thumbnail_url}
             streams = {}
             if not yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p') is None:
                 streams['720p'] = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution(

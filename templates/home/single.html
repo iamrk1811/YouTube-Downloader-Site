@@ -2,7 +2,18 @@
 {% block title %}YouTube Playlist Downloader - Single{% endblock %}
 {% block body %}
 {% load static %}
-<div class="single-container my-5">
+
+<div class="load-container">
+    <div class="load d-none" id="page_pre_loader">
+        <hr />
+        <hr />
+        <hr />
+        <hr />
+        <!-- <h5>Please Wait ...</h5> -->
+    </div>
+</div>
+
+<div class="single-container my-5" >
     <div class="container">
         <div class="row">
             <div class="col-12">
@@ -21,7 +32,7 @@
                     </form>
                 </div>
 
-                <div class="single-result-container px-md-5 px-1 pt-5">
+                <div class="single-result-container px-md-5 px-1 pt-5" id="single_result_container">
                     <div class="row">
                         <div class="col-12 col-md-5">
                             <div class="single-result-thumbnail-container" id="single_video_thumbnail_id">                               
@@ -45,12 +56,4 @@
     </div>
 </div>
 
-
 {% endblock %}
-<!-- 
-var downloading = browser.downloads.download({
-    url : downloadUrl,
-    filename : 'my-image-again.png',
-    conflictAction : 'uniquify'
-  });
-  function optionChanged(){$('#dynamicURL').attr('href', $('#single_download_select_id :selected').val());} -->
