@@ -81,6 +81,7 @@ body {
 .form-and-playlist-result form input{
     caret-color: #26de81;
     color: #26de81 !important;
+    border: 2px solid #26de81;
     font-size: 18px;
     -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
     -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
@@ -185,9 +186,38 @@ body {
     font-weight: 500;
     background: transparent;
 }
+.single-download-button{
+    margin-left: 30px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-right: 20px;
+    padding-left: 20px;
+    font-weight: 500;
+    font-size: 14px;
+    background: transparent;
+    border: 2px solid #26de81;
+    border-radius: 10px;
+    color: #26de81;
+    -webkit-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 48px -18px rgba(0,0,0,0.75);
+}
+.single-download-button:hover{
+    border: 2px solid #26de81;
+    color: #fff;
+    background-color: #26de81;
+}
 
 /* Single CSS END */
 
+/* Footer START */
+.center{
+    margin: 0 auto;
+}
+.center a:link, .center a:visited, .center a:active, .center a:hover{
+    text-decoration: none;
+}
+/* Footer END */
 
 /* Media Query START*/
 @media screen and (max-width: 992px ){
@@ -201,6 +231,9 @@ body {
 
 /* Media for less than 576px */
 @media screen and (max-width: 576px){
+    .single-download-button{
+        margin-top: 10px;
+    }
     
 }
 /* Medua Query END */

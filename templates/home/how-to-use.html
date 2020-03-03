@@ -1,0 +1,25 @@
+{% extends 'home/basic.html' %}
+{% load static %}
+{% block title %}How To Use{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h3>How to use?</h3>
+            <h5>Download Playlist Video Demo</h5>
+            
+            <div class="text-center">
+                <img src="{% static '/img/playlist-demo/1.jpg' %}" alt="demo" class="img-fluid">
+                <img src="{% static '/img/playlist-demo/2.jpg' %}" alt="demo" class="img-fluid">
+                <h5 class="pt-5">Internet Download Manager</h5>
+                <img src="{% static '/img/playlist-demo/3.jpg' %}" alt="demo" class="img-fluid">
+                <img src="{% static '/img/playlist-demo/4.jpg' %}" alt="demo" class="img-fluid">
+                <h5 class="pt-5">Free Download Manager</h5>
+                <img src="{% static '/img/playlist-demo/5.jpg' %}" alt="demo" class="img-fluid">
+                <img src="{% static '/img/playlist-demo/6.jpg' %}" alt="demo" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

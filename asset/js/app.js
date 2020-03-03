@@ -23,8 +23,9 @@ $(document).ready(function () {
     //         window.location.reload();
     //     }
     // });
+  
 
-
+    $('#year').html(new Date().getFullYear());
 
     // code for playlist page
     $(document).on('submit', '#playlist_form', function(e){
@@ -49,7 +50,7 @@ $(document).ready(function () {
                     new_video_area_text += $('#playlist_result_area_id').text()
                     $.ajax({
                         type: 'GET',
-                        url: 'http://127.0.0.1:8000/playlist-ajax',
+                        url: '/playlist-ajax',
                         data: {
                             video_no: i,
                             video_quality: $('#playlist_quality_id :selected').val(),
@@ -84,19 +85,21 @@ $(document).ready(function () {
                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
             },
             success: function (data) {
+                
                 var json_data = JSON.parse(JSON.stringify(data));
                 $('#single_video_thumbnail_id').html('<img src="' + json_data.thumbnail + '" class="img-fluid" alt="thumbnail">');
                 $('#single_video_title_id').text(json_data.title);
                 $('#single_video_time_id').html(json_data.time);
-                var streams = "";
+                var streams = "<select id='single_download_select_id' onchange='optionChanged()'><script type='text/javascript'> function optionChanged(){$('#dynamicURL').attr('href', $('#single_download_select_id :selected').val());}</script>";
                 // var output = Object.keys(json_data.streams)[1];
                 for (i = 0; i < Object.keys(data.streams).length; i++) {
-                    streams += "<a href='" + Object.values(json_data.streams)[i] + "'><button>" + Object.keys(json_data.streams)[i] + "</button>";
+                    streams += "<option value='" + Object.values(json_data.streams)[i] + "'>" + Object.keys(json_data.streams)[i] + "</option>";
                 }
+                streams += "</select><a id='dynamicURL' href=''><button class='single-download-button'>Download</button></a>"
                 $('#single_video_download_id').html(streams);
+                $('#dynamicURL').attr('href', Object.values(json_data.streams)[0]);             
             }
         });
     });
-
-
+    
 });

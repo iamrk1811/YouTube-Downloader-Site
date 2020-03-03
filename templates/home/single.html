@@ -21,7 +21,7 @@
                     </form>
                 </div>
 
-                <div class="single-result-container">
+                <div class="single-result-container px-md-5 px-1 pt-5">
                     <div class="row">
                         <div class="col-12 col-md-5">
                             <div class="single-result-thumbnail-container" id="single_video_thumbnail_id">                               
@@ -30,9 +30,9 @@
                         <div class="col-12 col-md-7">
                             <div class="single-result-details-container">
                                 <div class="single-video-title">
-                                    <h6 id="single_video_title_id"></h6>
+                                    <h5 id="single_video_title_id" class="py-3"></h5>
                                 </div>
-                                <div class="single-video-time" id="single_video_time_id">                                   
+                                <div class="single-video-time pb-2" id="single_video_time_id">                                   
                                 </div>
                                 <div class="single-video-download" id="single_video_download_id">
                                 </div>
@@ -45,4 +45,12 @@
     </div>
 </div>
 
+
 {% endblock %}
+<!-- 
+var downloading = browser.downloads.download({
+    url : downloadUrl,
+    filename : 'my-image-again.png',
+    conflictAction : 'uniquify'
+  });
+  function optionChanged(){$('#dynamicURL').attr('href', $('#single_download_select_id :selected').val());} -->

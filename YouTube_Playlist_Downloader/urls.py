@@ -22,6 +22,6 @@ urlpatterns = [
     path('', views.homeSingle),
     path('playlist/', views.homePlaylist),
     path('playlist-ajax/', views.playlistAjax),
-
+    path('how-to-use/', views.homeHowToUse),
 
 ]

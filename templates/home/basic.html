@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{%static 'img/icon.ico'%}">
     <!-- Custom CSS File -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <!-- Bootstrap CSS File -->
@@ -17,7 +18,7 @@
     <header>
         <div class="main-header container">
             <nav class="navbar navbar-expand-lg navbar-light ">
-                <a class="navbar-brand" href="#">FREE YouTube Downloader</a>
+                <a class="navbar-brand" href="#"><h1>😂</h1></a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse"
                     data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                     aria-label="Toggle navigation">
@@ -27,16 +28,13 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item {% if request.path == '/' %}active{% endif %}">
-                            <a class="nav-link" href="">Single</a>
+                            <a class="nav-link" href="/">Single</a>
                         </li>
                         <li class="nav-item {% if request.path == '/playlist/' %}active{% endif %}">
-                            <a class="nav-link" href="playlist">Playlist</a>
+                            <a class="nav-link" href="/playlist">Playlist</a>
                         </li>
-                        <li class="nav-item {% if request.path == 'how-to-use' %}active{% endif %}">
-                            <a class="nav-link" href="#">How To Use</a>
-                        </li>
-                        <li class="nav-item {% if request.path == 'how-to-use' %}active{% endif %}">
-                            <a class="nav-link" href="{{request.site_name}}">Test</a>
+                        <li class="nav-item {% if request.path == '/how-to-use/' %}active{% endif %}">
+                            <a class="nav-link" href="/how-to-use">How To Use</a>
                         </li>
                     </ul>
                 </div>
@@ -44,6 +42,15 @@
         </div>
     </header>
     {% block body %}{% endblock %}
+    <footer>
+        <div class="col-12">
+            <div class="row">
+                <div class="footer center py-4">
+                    <h6>&copy;Copyright Tech RK <span id="year"></span> | Created By <a href="https://www.facebook.com/rakibrk1811">Rakib Hossain</a></h6>
+                </div>
+            </div>
+        </div>
+    </footer>
     {% block script %}{% endblock %}
     <!-- Jquery JS File -->
     <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
