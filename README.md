@@ -5,4 +5,4 @@
 		BeautifulSoup
 # **Features:**
 - **Download Single YouTube Video**
-- **Download Whole YouTube Playlist **
+- **Download Whole YouTube Playlist**
