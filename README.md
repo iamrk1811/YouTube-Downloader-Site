@@ -1,3 +1,4 @@
+# **Current Version 1.0**
 # **Dependencies:**
 		Python
 		Django
