@@ -5,7 +5,6 @@ import requests
 import re
 import urllib.parse
 from django.http import JsonResponse
-import time
 
 
 # Code for playlist START
@@ -95,7 +94,6 @@ def giveMeAllVideoList(URL):
 
 # Code for single START
 def giveMeVideoID(URL):
-    print(URL)
     # check point for mobile
     regex_for_mobile = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
     regex_for_computer = r"https://www.youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
@@ -124,7 +122,7 @@ def homeSingle(request):
     if request.method == 'POST' and request.POST.get('single_video_input'):
         URL = request.POST.get('single_video_input')
         single_video_id = giveMeVideoID(URL)
-        if not single_video_id is None:
+        if single_video_id is not None:
             yt = YouTube("https://www.youtube.com/watch?v=" + single_video_id)
             video_title = yt.title
 
@@ -134,8 +132,12 @@ def homeSingle(request):
             seconds %= 3600
             minutes = seconds // 60
             seconds %= 60
-
-            time = str(hour) + ":" + str(minutes) + ":" + str(seconds)
+            time = ""
+            if not hour == 0:
+                time += str(hour) + ":"
+            if not minutes == 0:
+                time += str(minutes) + ":"
+            time += str(seconds)
 
             dictionary = {'title': yt.title, 'time': time, 'thumbnail': yt.thumbnail_url}
             streams = {}
@@ -158,7 +160,6 @@ def homeSingle(request):
 
             # return render(request, 'home/single.html', dictionary)
             return JsonResponse(dictionary)
-
 
         else:
             return render(request, 'home/single.html')
@@ -193,6 +194,7 @@ def homePlaylist(request):
 
 
 def playlistAjax(request):
+    """This function handle GET AJAX Request and return video number, title, thumbnail, download link"""
     if request.method == 'GET' and request.GET.get('video_link'):
         video_link =  request.GET.get('video_link')
         # creating Youtube object using pytube.YouTube
@@ -258,7 +260,6 @@ def playlistAjax(request):
             video_title = str(int(request.GET.get('video_no')) + 1) + ". " + video_title
         video_title_url_encoded = urllib.parse.quote(video_title, safe="")
         video_download_url = video_link + "&title=" + video_title_url_encoded
-
 
         data = {
             'video_number' : int(request.GET.get('video_no')) + 1,
