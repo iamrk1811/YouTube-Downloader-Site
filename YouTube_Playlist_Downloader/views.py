@@ -14,7 +14,9 @@ def giveMeTheCorrectURL(url_to_be_checked):
 
     # regex for match playlist and watch window link
     regex_for_playlist = r"https:\/\/www.youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
+    regex_for_playlist_without_www = r"https:\/\/youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
     regex_for_watch_window = r"https:\/\/www.youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
+    regex_for_watch_window_without_www = r"https:\/\/youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
 
     test_str = url_to_be_checked
 
@@ -24,10 +26,22 @@ def giveMeTheCorrectURL(url_to_be_checked):
         if matchNum:
             result = "yup this is playlist"
             return result
+    # Checking for playlist link without www
+    matches_for_playlist_without_www = re.finditer(regex_for_playlist_without_www, test_str, re.MULTILINE)
+    for matchNum, match in enumerate(matches_for_playlist_without_www, start=1):
+        if matchNum:
+            result = "yup this is playlist"
+            return result
 
     # Checking for watch window
     matches_for_watch_window = re.finditer(regex_for_watch_window, test_str, re.MULTILINE)
     for matchNum, match in enumerate(matches_for_watch_window, start=1):
+        if matchNum:
+            result = "yup this is watch window"
+            return result
+    # Checking for watch window without www
+    matches_for_watch_window_without_www = re.finditer(regex_for_watch_window_without_www, test_str, re.MULTILINE)
+    for matchNum, match in enumerate(matches_for_watch_window_without_www, start=1):
         if matchNum:
             result = "yup this is watch window"
             return result
@@ -55,8 +69,7 @@ def firstVideoLinkFromPlaylist(URL):
             matches_for_video_id = re.finditer(regex_for_data_video_id, test_str, re.MULTILINE)
             for matchNum, match in enumerate(matches_for_video_id, start=1):
                 if matchNum == 1:
-                    video_id = match.group()
-                    video_id = video_id.replace('data-video-id="', "")
+                    video_id = match.group().replace('data-video-id="', "")
                     video_url = "https://www.youtube.com/watch?v=" + video_id + "&list=" + playlist_id
                     return video_url
 
@@ -82,8 +95,7 @@ def giveMeAllVideoList(URL):
 
         matches_for_video_id = re.finditer(regex_for_data_video_id, match.group(), re.MULTILINE)
         for number, matchcase in enumerate(matches_for_video_id, start=1):
-            video_id = matchcase.group()
-            video_id = video_id.replace('data-video-id="', "")
+            video_id = matchcase.group().replace('data-video-id="', "")
             video_url = "https://www.youtube.com/watch?v=" + video_id
             allVideoList.append(video_url)
 
@@ -97,9 +109,11 @@ def giveMeVideoID(URL):
     # check point for mobile
     regex_for_mobile = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
     regex_for_computer = r"https://www.youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
+    regex_for_computer_without_www = r"https://youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
 
     matches_for_mobile = re.finditer(regex_for_mobile, URL, re.MULTILINE)
     matches_for_computer = re.finditer(regex_for_computer, URL, re.MULTILINE)
+    matches_for_computer_without_www = re.finditer(regex_for_computer_without_www, URL, re.MULTILINE)
 
     # for loop to get video id from mobile link
     for matchNum, match in enumerate(matches_for_mobile, start=1):
@@ -113,6 +127,12 @@ def giveMeVideoID(URL):
             total_match = match.group()
             video_id = total_match.replace("https://www.youtube.com/watch?v=", "")
             return video_id
+    # for loop to get video from computer link with out www
+    for matchNum, match in enumerate(matches_for_computer_without_www, start=1):
+        if matchNum == 1:
+            total_match = match.group()
+            video_id = total_match.replace("https://youtube.com/watch?v=", "")
+            return video_id
 
 
 # Code for single END
@@ -124,7 +144,7 @@ def homeSingle(request):
         single_video_id = giveMeVideoID(URL)
         if single_video_id is not None:
             yt = YouTube("https://www.youtube.com/watch?v=" + single_video_id)
-            video_title = yt.title
+            video_title_url_encoded = "&title=" + urllib.parse.quote(yt.title, safe="")
 
             seconds = yt.length
             seconds = seconds % (24 * 3600)
@@ -143,18 +163,20 @@ def homeSingle(request):
             streams = {}
             if not yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p') is None:
                 streams['720p'] = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution(
-                    '720p').url + "&title=" + urllib.parse.quote(video_title, safe="")
+                    '720p').url + video_title_url_encoded
             if not yt.streams.get_by_itag(135) is None:
                 # you can not get the video url using get_by_resolution() for 480, 240, 144
                 # you can get only video not audio by using get_by_itag()
-                streams['480p No Audio'] = yt.streams.get_by_itag(135).url + "&title=" + urllib.parse.quote(video_title, safe="")
+                streams['480p No Audio'] = yt.streams.get_by_itag(135).url + video_title_url_encoded
             if not yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p') is None:
                 streams['360p'] = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution(
-                    '360p').url + "&title=" + urllib.parse.quote(video_title, safe="")
+                    '360p').url + video_title_url_encoded
             if not yt.streams.get_by_itag(133) is None:
-                streams['240p No Audio'] = yt.streams.get_by_itag(133).url + "&title=" + urllib.parse.quote(video_title, safe="")
+                streams['240p No Audio'] = yt.streams.get_by_itag(133).url + video_title_url_encoded
             if not yt.streams.get_by_itag(160) is None:
-                streams['144p No Audio'] = yt.streams.get_by_itag(160).url + "&title=" + urllib.parse.quote(video_title, safe="")
+                streams['144p No Audio'] = yt.streams.get_by_itag(160).url + video_title_url_encoded
+            if not yt.streams.get_by_itag(140) is None:
+                streams['Audio 128kb'] = yt.streams.get_by_itag(140).url + video_title_url_encoded
 
             dictionary['streams'] = streams
 
@@ -196,7 +218,7 @@ def homePlaylist(request):
 def playlistAjax(request):
     """This function handle GET AJAX Request and return video number, title, thumbnail, download link"""
     if request.method == 'GET' and request.GET.get('video_link'):
-        video_link =  request.GET.get('video_link')
+        video_link = request.GET.get('video_link')
         # creating Youtube object using pytube.YouTube
         yt = YouTube(video_link)
         video_title = yt.title
@@ -224,7 +246,7 @@ def playlistAjax(request):
                     video_link = ""
         elif video_quality == '480':
             try:
-                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(135).url
+                video_link = yt.streams.get_by_itag(135).url
             except Exception as e:
                 if request.GET.get("reduce") == 'true':
                     video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
@@ -240,7 +262,7 @@ def playlistAjax(request):
                     video_link = ""
         elif video_quality == '240':
             try:
-                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(133).url
+                video_link = yt.streams.get_by_itag(133).url
             except Exception as e:
                 if request.GET.get("reduce") == 'true':
                     video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
@@ -248,18 +270,22 @@ def playlistAjax(request):
                     video_link = ""
         elif video_quality == '144':
             try:
-                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_itag(160).url
+                video_link = yt.streams.get_by_itag(160).url
             except Exception as e:
                 if request.GET.get("reduce") == 'true':
                     video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
                 else:
                     video_link = ""
+        elif video_quality == '128':
+            try:
+                video_link = yt.streams.get_by_itag(140).url
+            except Exception as e:
+                video_link = ""
 
         # title prefix if option selected
         if request.GET.get('prefix') == 'true':
             video_title = str(int(request.GET.get('video_no')) + 1) + ". " + video_title
-        video_title_url_encoded = urllib.parse.quote(video_title, safe="")
-        video_download_url = video_link + "&title=" + video_title_url_encoded
+        video_download_url = video_link + "&title=" + urllib.parse.quote(video_title, safe="")
 
         data = {
             'video_number' : int(request.GET.get('video_no')) + 1,
