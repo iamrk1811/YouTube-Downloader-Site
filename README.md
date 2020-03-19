@@ -1,3 +1,5 @@
+#### Disclaimer
+    Youtube Playlist Downloader is created for education purpose
 # **Current Version 1.0**
 # **Dependencies:**
 		python3.x
