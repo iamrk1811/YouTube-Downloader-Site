@@ -49,57 +49,23 @@ def giveMeTheCorrectURL(url_to_be_checked):
     return "not match found"
 
 
-def firstVideoLinkFromPlaylist(URL):
+def firstVideoLinkFromPlaylist(url):
     """this function will return the first video link with playlist id from playlist web page"""
-    playlist_id = URL.replace("https://www.youtube.com/playlist?list=", "")
-    r = requests.get(URL)
-    soup = BeautifulSoup(r.content, 'html5lib')
-    data = soup.prettify()
-
-    # regex for find out first video
-    regex = r"<tr class=\"pl-video yt-uix-tile\" data-set-video-id=\"\" data-title=\"[a-zA-Z0-9 -?\":|}{+_/.,';\][=-~!@#$%^&*()]+ data-video-id=\"[0-9A-Za-z-_]+\">"
-
-    test_str = data
-
-    matches = re.finditer(regex, test_str, re.MULTILINE)
-    # loop through matches but return on fist matched condition
-    for matchNum, match in enumerate(matches, start=1):
-        if matchNum == 1:
-            regex_for_data_video_id = r"data-video-id=\"[a-zA-Z0-9-_]+"
-            matches_for_video_id = re.finditer(regex_for_data_video_id, test_str, re.MULTILINE)
-            for matchNum, match in enumerate(matches_for_video_id, start=1):
-                if matchNum == 1:
-                    video_id = match.group().replace('data-video-id="', "")
-                    video_url = "https://www.youtube.com/watch?v=" + video_id + "&list=" + playlist_id
-                    return video_url
+    # playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    video_url = "https://www.youtube.com" + soup.find('a', {'class' : 'pl-video-title-link yt-uix-tile-link yt-uix-sessionlink spf-link'})['href']
+    return video_url
 
 
-def giveMeAllVideoList(URL):
+def giveMeAllVideoList(url):
     """this function will return first video link with playlist id from watch window"""
-    r = requests.get(URL)
-    soup = BeautifulSoup(r.content, 'html5lib')
-    data = soup.prettify()
-
-    # regex for find out all video from watch window web page
-    regex = r"<li class=\"yt-uix-scroller-scroll-unit vve-check(\"|[a-zA-Z, -0-9\"]+)=\"[0-9]+\" data-innertube-clicktracking=\"[0-9a-zA-Z-_]+\" data-thumbnail-url=\"https://i.ytimg.com/vi/[a-zA-Z0-9_-]+/hqdefault.jpg\?sqp=[a-zA-Z0-9-_]+==&amp;rs=[a-zA-Z0-9-_]+\" data-video-id=\"[a-zA-Z0-9 -_]+"
-    test_str = data
-
-    matches = re.finditer(regex, test_str, re.MULTILINE)
-
-    # this list will contain all video link
-    allVideoList = []
-
-    # looping through matches and add to list
-    for matchNum, match in enumerate(matches, start=1):
-        regex_for_data_video_id = r"data-video-id=\"[a-zA-Z0-9-_]+"
-
-        matches_for_video_id = re.finditer(regex_for_data_video_id, match.group(), re.MULTILINE)
-        for number, matchcase in enumerate(matches_for_video_id, start=1):
-            video_id = matchcase.group().replace('data-video-id="', "")
-            video_url = "https://www.youtube.com/watch?v=" + video_id
-            allVideoList.append(video_url)
-
-    return allVideoList
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    all_video_list = []
+    for video in soup.find_all('a', {'class': 'spf-link playlist-video clearfix yt-uix-sessionlink spf-link'}):
+        all_video_list.append("https://www.youtube.com" + video['href'])
+    return all_video_list
 
 
 # Code for playlist END
