@@ -51,20 +51,63 @@ def giveMeTheCorrectURL(url_to_be_checked):
 
 def firstVideoLinkFromPlaylist(url):
     """this function will return the first video link with playlist id from playlist web page"""
-    # playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
+    playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
     r = requests.get(url)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    video_url = "https://www.youtube.com" + soup.find('a', {'class' : 'pl-video-title-link yt-uix-tile-link yt-uix-sessionlink spf-link'})['href']
-    return video_url
+    # soup = BeautifulSoup(r.content, 'html.parser')
+    
+    regex = r"{\"url\":\"/watch\?v=[a-zA-Z0-9_-]{11}"
+    
+    page_content = r.content.decode('utf-8')
+
+    matches = re.finditer(regex, page_content, re.MULTILINE)
+
+    url = "https://www.youtube.com"
+
+    for matchNum, match in enumerate(matches, start=1):
+                if matchNum == 1:
+                    url += match.group().replace('''{"url":"''', "")
+                    url += "&list=" + playlist_id
+                    return url
 
 
 def giveMeAllVideoList(url):
     """this function will return first video link with playlist id from watch window"""
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
+
+    regex = r"/watch\?v=[a-zA-Z0-9-_]{11}\\u0026list=[a-zA-Z0-9-_]{34}\\u0026index=[0-9]+"
+
+    response_script = str(soup.findAll('script')[32])
+
+    matches = re.finditer(regex, response_script, re.MULTILINE)
+
+    videos_list = []
+    for matchNum, match in enumerate(matches, start=1):
+        videos_list.append(match.group())
+
+    videos_set = set(videos_list)
+    
+    videos_dict = {}
+    for video in videos_set:
+        try:
+            print(int(str(re.findall(r"index=[0-9]+", video)).replace("index=", "")), 10)
+        except Exception as e:
+            pass
+        videos_dict[str(re.findall(r"index=[0-9]+", video)).replace("index=", "")] = "https://www.youtube.com" + str(re.match(r"/watch\?v=[a-zA-Z0-9-_]{11}", video))
+
+    
+
+    print(videos_dict)
+
     all_video_list = []
-    for video in soup.find_all('a', {'class': 'spf-link playlist-video clearfix yt-uix-sessionlink spf-link'}):
-        all_video_list.append("https://www.youtube.com" + video['href'])
+    values = videos_dict.values()
+    all_video_list = list(values)
+
+    # for key, video in videos_dict.items():
+    #     # all_video_list.append("https://www.youtube.com" + str(re.match(r"/watch\?v=[a-zA-Z0-9-_]{11}", video)))
+    #     all_video_list.append(video)
+    # print(all_video_list)
+
     return all_video_list
 
 
