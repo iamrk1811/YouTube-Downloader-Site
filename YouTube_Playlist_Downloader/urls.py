@@ -19,9 +19,8 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.homeSingle),
+    path('', views.homeSingle, name="SingleVideo"),
     path('playlist/', views.homePlaylist),
     path('playlist-ajax/', views.playlistAjax),
     path('how-to-use/', views.homeHowToUse),
-
 ]

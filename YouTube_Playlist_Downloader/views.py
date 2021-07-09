@@ -1,117 +1,12 @@
-from django.shortcuts import render
-from pytube import YouTube
+from django.http.response import HttpResponseRedirect
+from django.shortcuts import redirect, render
+from pytube import YouTube, streams
 from bs4 import BeautifulSoup
 import requests
-import re
 import urllib.parse
 from django.http import JsonResponse
-
-
-# Code for playlist START
-def giveMeTheCorrectURL(url_to_be_checked):
-    """checking the input url to see either it is playlist link or watch window link
-        , if it is a playlist link this function will return watch window link"""
-
-    # regex for match playlist and watch window link
-    regex_for_playlist = r"https:\/\/www.youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
-    regex_for_playlist_without_www = r"https:\/\/youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
-    regex_for_watch_window = r"https:\/\/www.youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
-    regex_for_watch_window_without_www = r"https:\/\/youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
-
-    test_str = url_to_be_checked
-
-    # Checking for playlist link
-    matches_for_playlist = re.finditer(regex_for_playlist, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_playlist, start=1):
-        if matchNum:
-            result = "yup this is playlist"
-            return result
-    # Checking for playlist link without www
-    matches_for_playlist_without_www = re.finditer(regex_for_playlist_without_www, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_playlist_without_www, start=1):
-        if matchNum:
-            result = "yup this is playlist"
-            return result
-
-    # Checking for watch window
-    matches_for_watch_window = re.finditer(regex_for_watch_window, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_watch_window, start=1):
-        if matchNum:
-            result = "yup this is watch window"
-            return result
-    # Checking for watch window without www
-    matches_for_watch_window_without_www = re.finditer(regex_for_watch_window_without_www, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_watch_window_without_www, start=1):
-        if matchNum:
-            result = "yup this is watch window"
-            return result
-
-    return "not match found"
-
-
-def firstVideoLinkFromPlaylist(url):
-    """this function will return the first video link with playlist id from playlist web page"""
-    playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
-    r = requests.get(url)
-    # soup = BeautifulSoup(r.content, 'html.parser')
-    
-    regex = r"{\"url\":\"/watch\?v=[a-zA-Z0-9_-]{11}"
-    
-    page_content = r.content.decode('utf-8')
-
-    matches = re.finditer(regex, page_content, re.MULTILINE)
-
-    url = "https://www.youtube.com"
-
-    for matchNum, match in enumerate(matches, start=1):
-                if matchNum == 1:
-                    url += match.group().replace('''{"url":"''', "")
-                    url += "&list=" + playlist_id
-                    return url
-
-
-def giveMeAllVideoList(url):
-    """this function will return first video link with playlist id from watch window"""
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content, 'html.parser')
-
-    regex = r"/watch\?v=[a-zA-Z0-9-_]{11}\\u0026list=[a-zA-Z0-9-_]{34}\\u0026index=[0-9]+"
-
-    response_script = str(soup.findAll('script')[32])
-
-    matches = re.finditer(regex, response_script, re.MULTILINE)
-
-    videos_list = []
-    for matchNum, match in enumerate(matches, start=1):
-        videos_list.append(match.group())
-
-    videos_set = set(videos_list)
-    
-    videos_dict = {}
-    for video in videos_set:
-        try:
-            print(int(str(re.findall(r"index=[0-9]+", video)).replace("index=", "")), 10)
-        except Exception as e:
-            pass
-        videos_dict[str(re.findall(r"index=[0-9]+", video)).replace("index=", "")] = "https://www.youtube.com" + str(re.match(r"/watch\?v=[a-zA-Z0-9-_]{11}", video))
-
-    
-
-    print(videos_dict)
-
-    all_video_list = []
-    values = videos_dict.values()
-    all_video_list = list(values)
-
-    # for key, video in videos_dict.items():
-    #     # all_video_list.append("https://www.youtube.com" + str(re.match(r"/watch\?v=[a-zA-Z0-9-_]{11}", video)))
-    #     all_video_list.append(video)
-    # print(all_video_list)
-
-    return all_video_list
-
-
-# Code for playlist END
+from .utils import *
+from .pafy_utils import *
 
 # Code for single START
 def giveMeVideoID(URL):
@@ -151,49 +46,41 @@ def homeSingle(request):
     if request.method == 'POST' and request.POST.get('single_video_input'):
         URL = request.POST.get('single_video_input')
         single_video_id = giveMeVideoID(URL)
+
         if single_video_id is not None:
-            yt = YouTube("https://www.youtube.com/watch?v=" + single_video_id)
-            video_title_url_encoded = "&title=" + urllib.parse.quote(yt.title, safe="")
+            video = None
+            try:
+                video = pafy.new("https://www.youtube.com/watch?v=" + single_video_id)
+            except Exception as e:
+                err = {
+                    "error" : "Something went wrong"
+                }
+                return JsonResponse(err)
 
-            seconds = yt.length
-            seconds = seconds % (24 * 3600)
-            hour = seconds // 3600
-            seconds %= 3600
-            minutes = seconds // 60
-            seconds %= 60
-            time = ""
-            if not hour == 0:
-                time += str(hour) + ":"
-            if not minutes == 0:
-                time += str(minutes) + ":"
-            time += str(seconds)
+            video_title_url_encoded = "&title=" + urllib.parse.quote(video.title, safe="")
 
-            dictionary = {'title': yt.title, 'time': time, 'thumbnail': yt.thumbnail_url}
-            streams = {}
-            if not yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p') is None:
-                streams['720p'] = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution(
-                    '720p').url + video_title_url_encoded
-            if not yt.streams.get_by_itag(135) is None:
-                # you can not get the video url using get_by_resolution() for 480, 240, 144
-                # you can get only video not audio by using get_by_itag()
-                streams['480p No Audio'] = yt.streams.get_by_itag(135).url + video_title_url_encoded
-            if not yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p') is None:
-                streams['360p'] = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution(
-                    '360p').url + video_title_url_encoded
-            if not yt.streams.get_by_itag(133) is None:
-                streams['240p No Audio'] = yt.streams.get_by_itag(133).url + video_title_url_encoded
-            if not yt.streams.get_by_itag(160) is None:
-                streams['144p No Audio'] = yt.streams.get_by_itag(160).url + video_title_url_encoded
-            if not yt.streams.get_by_itag(140) is None:
-                streams['Audio 128kb'] = yt.streams.get_by_itag(140).url + video_title_url_encoded
+            time = video.duration
+            thumbnail = video.thumb
+            thumbnail = thumbnail.replace("default", "hqdefault")
 
-            dictionary['streams'] = streams
+            dictionary = {'title': video.title, 'time': time, 'thumbnail': thumbnail}
 
-            # return render(request, 'home/single.html', dictionary)
+            all_streams = {}
+
+            for s in video.streams:
+                if "720" in s.resolution:
+                    all_streams["720"] = s.url + video_title_url_encoded
+                if "360" in s.resolution:
+                    all_streams["360"] = s.url + video_title_url_encoded
+
+            dictionary['streams'] = all_streams
+            dictionary['error'] = ""
+
             return JsonResponse(dictionary)
 
         else:
             return render(request, 'home/single.html')
+            
     return render(request, 'home/single.html')
 
 
@@ -203,20 +90,23 @@ def homePlaylist(request):
     if request.method == 'POST' and request.POST.get('playlist_link_name'):
         URL = request.POST.get('playlist_link_name')
 
-        # ultimate goal is to get watch window link because we are going to scrape data from watch window
-        watch_window_link = ""
+        # check the user input (url type) and according to url type
+        # create final URL
+        playlist_url = ""
 
-        # find out which link user entered real playlist link or watch window link
-        if giveMeTheCorrectURL(URL) == 'yup this is playlist':
-            watch_window_link = firstVideoLinkFromPlaylist(URL)
-        elif giveMeTheCorrectURL(URL) == 'yup this is watch window':
-            watch_window_link = URL
+        url_type = giveMeTheCorrectURL(URL)
+
+        if url_type == 'yup this is playlist':
+            playlist_url = URL
+        elif url_type == 'yup this is watch window':
+            playlist_url = getPlaylistUrlFromWatchWindow(URL)
         else:
             # handling if user entered wrong url
             return render(request, 'home/playlist.html')
 
         # if everything goes right then proceed to get all video link from watch window web page
-        allVideoList = giveMeAllVideoList(watch_window_link)
+        allVideoList = getVideoLinks(playlist_url)
+
         data = {'allVideoList' : allVideoList}
         return JsonResponse(data)
 
@@ -228,69 +118,52 @@ def playlistAjax(request):
     """This function handle GET AJAX Request and return video number, title, thumbnail, download link"""
     if request.method == 'GET' and request.GET.get('video_link'):
         video_link = request.GET.get('video_link')
-        # creating Youtube object using pytube.YouTube
-        yt = YouTube(video_link)
-        video_title = yt.title
+        # creating Youtube object using pafy
+        video = None
+        try:
+            video = pafy.new(video_link)
+        except Exception as e:
+            data = {
+                'video_number' : "-1",
+                'video_title' : 'Private Video',
+                'video_thumbnail' : "",
+                'video_download_url' : ""
+            }
+            return JsonResponse(data)
+
+
+        video_title = video.title
+
         # making copy of the title because i don't want to prefix the real title with video no
         video_title_copy = video_title
         # getting video thumbnail
-        video_thumbnail = yt.thumbnail_url
+        video_thumbnail = video.thumb
 
         # getting video download url
         video_link = ""
 
         video_quality = request.GET.get('video_quality')
 
+        # contains all available streams of a video
+        streams = video.streams
         # handling every resolution
         if video_quality == '720':
-            try:
-                # execute this code if 720p is selected and if 720 isn't available then go to catch
-                # i am handling download link here because user can uncheck reduce quality if not exist
-                # in this case output will be blank in text area but title thumbnail will be available but video will be not downloadable
-                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('720p').url
-            except Exception as e:
-                if request.GET.get("reduce") == 'true':
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                else:
-                    video_link = ""
-        elif video_quality == '480':
-            try:
-                video_link = yt.streams.get_by_itag(135).url
-            except Exception as e:
-                if request.GET.get("reduce") == 'true':
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                else:
-                    video_link = ""
+            for s in streams:
+                if "720" in s.resolution:
+                    video_link = s.url
+            if video_link == "" and request.GET.get("reduce") == 'true':
+                for s in streams:
+                    video_link = s.url
+                    break
         elif video_quality == '360':
-            try:
-                video_link = yt.streams.filter(progressive=True, file_extension='mp4').get_by_resolution('360p').url
-            except Exception as e:
-                if request.GET.get("reduce") == 'true':
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                else:
-                    video_link = ""
-        elif video_quality == '240':
-            try:
-                video_link = yt.streams.get_by_itag(133).url
-            except Exception as e:
-                if request.GET.get("reduce") == 'true':
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                else:
-                    video_link = ""
-        elif video_quality == '144':
-            try:
-                video_link = yt.streams.get_by_itag(160).url
-            except Exception as e:
-                if request.GET.get("reduce") == 'true':
-                    video_link = yt.streams.filter(progressive=True, file_extension='mp4').first().url
-                else:
-                    video_link = ""
-        elif video_quality == '128':
-            try:
-                video_link = yt.streams.get_by_itag(140).url
-            except Exception as e:
-                video_link = ""
-
+            for s in streams:
+                if "360" in s.resolution:
+                    video_link = s.url
+            if video_link == "" and request.GET.get("reduce") == 'true':
+                for s in streams:
+                    video_link = s.url
+                    break
+                
         # title prefix if option selected
         if request.GET.get('prefix') == 'true':
             video_title = str(int(request.GET.get('video_no')) + 1) + ". " + video_title

@@ -7,7 +7,6 @@ $(document).ready(function () {
     });
 
     var page_pre_loader = document.getElementById('page_pre_loader');
-    $('#year').html(new Date().getFullYear());
 
     var progress_no = 0;
     // code for playlist page
@@ -15,6 +14,7 @@ $(document).ready(function () {
         // Prevent default behavior of the form
         e.preventDefault();
         const progressBar = document.getElementById('prog');
+
         // Tasks that i have to perform before request to server
         $('#playlist_result_container_id').fadeOut('slow', function(){});
         $('#single_single_video_id').fadeOut('slow', function(){});
@@ -23,6 +23,7 @@ $(document).ready(function () {
         $('#single_video_table').append('<tr><th>Sl No</th><th>Thumbnail</th><th>Title</th><th>Download</th></tr>');
         page_pre_loader.classList.remove('d-none');
         $('#playlist_result_area_id').text('');
+
         // Request to the Server
         $.ajax({
             type: 'POST',
@@ -40,6 +41,7 @@ $(document).ready(function () {
                 page_pre_loader.classList.add('d-none');
                 // Parsing JsonResponse to JSON Object
                 var json_data = JSON.parse(JSON.stringify(data));
+
                 // var number_of_videos = Object.keys(json_data.allVideoList).length;
                 // Looping through all video list link 
                 // And sending GET request to get download url, title, thumbnail
@@ -66,7 +68,8 @@ $(document).ready(function () {
                             // Getting download url
                             download_url = ajax_json_data['video_download_url'] + "\n"; 
                             // Getting thumbnail, title, download url, video number
-                            single_video_html = "<tr><td>" + ajax_json_data['video_number'].toString() + "</td><td><img class='img-fluid thumbnail py-2' src='" + ajax_json_data['video_thumbnail'] + "' alt='Thumbnail'></td><td>" + ajax_json_data['video_title'] + "</td><td><a href='" + ajax_json_data['video_download_url'] + "'><button class='download-button'>Download</button></a></td></tr>";
+                            valid_download_url = ajax_json_data['video_download_url'] == "" ? "#" : ajax_json_data['video_download_url'];
+                            single_video_html = "<tr><td>" + ajax_json_data['video_number'].toString() + "</td><td><img class='img-fluid thumbnail py-2' src='" + ajax_json_data['video_thumbnail'] + "' alt='Thumbnail'></td><td>" + ajax_json_data['video_title'] + "</td><td><a href='" + valid_download_url + "'><button class='download-button'>Download</button></a></td></tr>";
                             // Showing to front end
                             $('#single_video_table').append(single_video_html);
                             $('#playlist_result_area_id').append(download_url);                           
@@ -101,23 +104,27 @@ $(document).ready(function () {
             success: function (data) { 
                 // Parsing JsonResponse to JSON Object
                 var json_data = JSON.parse(JSON.stringify(data));
-                // Showing content to front end
-                $('#single_video_thumbnail_id').html('<img src="' + json_data.thumbnail + '" class="img-fluid" alt="thumbnail">');
-                $('#single_video_title_id').text(json_data.title);
-                $('#single_video_time_id').html(json_data.time);
-                // Adding javascript code dynamically with html code
-                var streams = "<select id='single_download_select_id' onchange='optionChanged()'><script type='text/javascript'> function optionChanged(){$('#dynamicURL').attr('href', $('#single_download_select_id :selected').val());}</script>";
-                for (i = 0; i < Object.keys(data.streams).length; i++) {
-                    streams += "<option value='" + Object.values(json_data.streams)[i] + "'>" + Object.keys(json_data.streams)[i] + "</option>";
+                
+                if (json_data.error != "") {
+                    console.log("Error")
+                } else {
+                    // Showing content to front end
+                    $('#single_video_thumbnail_id').html('<img src="' + json_data.thumbnail + '" class="img-fluid" alt="thumbnail">');
+                    $('#single_video_title_id').text(json_data.title);
+                    $('#single_video_time_id').html(json_data.time);
+                    // Adding javascript code dynamically with html code
+                    var streams = "<select id='single_download_select_id' onchange='optionChanged()'><script type='text/javascript'> function optionChanged(){$('#dynamicURL').attr('href', $('#single_download_select_id :selected').val());}</script>";
+                    for (i = 0; i < Object.keys(data.streams).length; i++) {
+                        streams += "<option value='" + Object.values(json_data.streams)[i] + "'>" + Object.keys(json_data.streams)[i] + "</option>";
+                    }
+                    streams += "</select><a id='dynamicURL' href=''><button class='single-download-button'>Download</button></a>"
+                    $('#single_video_download_id').html(streams);
+                    $('#dynamicURL').attr('href', Object.values(json_data.streams)[0]); 
                 }
-                streams += "</select><a id='dynamicURL' href=''><button class='single-download-button'>Download</button></a>"
-                $('#single_video_download_id').html(streams);
-                $('#dynamicURL').attr('href', Object.values(json_data.streams)[0]); 
                 // End Task
                 page_pre_loader.classList.add('d-none');
                 $("#single_result_container" ).fadeIn("slow", function(){});
                 $('#footer').fadeIn('slow', function(){});
-
             }
         });
     });
