@@ -47,7 +47,7 @@ def giveMeTheCorrectURL(url_to_be_checked):
 
 
 
-def getPlaylistUrlFromWatchWindow(url : str):
+def getPlaylistUrl(url : str):
     """This function takes URL of watch window and return playlist URL"""
     
     prefix_url = "https://www.youtube.com/playlist?"

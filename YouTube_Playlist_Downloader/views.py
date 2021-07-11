@@ -11,16 +11,26 @@ from .pafy_utils import *
 # Code for single START
 def giveMeVideoID(URL):
     # check point for mobile
-    regex_for_mobile = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
+    regex_for_mobile = r"https://www.youtu.be/[0-9a-zA-Z-_]{11}"
+    regex_for_mobile_without_www = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
     regex_for_computer = r"https://www.youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
     regex_for_computer_without_www = r"https://youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
 
+
     matches_for_mobile = re.finditer(regex_for_mobile, URL, re.MULTILINE)
+    matches_for_mobile_without_www = re.finditer(regex_for_mobile_without_www, URL, re.MULTILINE)
     matches_for_computer = re.finditer(regex_for_computer, URL, re.MULTILINE)
     matches_for_computer_without_www = re.finditer(regex_for_computer_without_www, URL, re.MULTILINE)
 
     # for loop to get video id from mobile link
     for matchNum, match in enumerate(matches_for_mobile, start=1):
+        if matchNum == 1:
+            total_match = match.group()
+            video_id = total_match.replace("https://www.youtu.be/", "")
+            return video_id
+
+    # for loop to get video id from mobile link without www
+    for matchNum, match in enumerate(matches_for_mobile_without_www, start=1):
         if matchNum == 1:
             total_match = match.group()
             video_id = total_match.replace("https://youtu.be/", "")
@@ -31,7 +41,7 @@ def giveMeVideoID(URL):
             total_match = match.group()
             video_id = total_match.replace("https://www.youtube.com/watch?v=", "")
             return video_id
-    # for loop to get video from computer link with out www
+    # for loop to get video from computer link without www
     for matchNum, match in enumerate(matches_for_computer_without_www, start=1):
         if matchNum == 1:
             total_match = match.group()
@@ -95,11 +105,11 @@ def homePlaylist(request):
         playlist_url = ""
 
         url_type = giveMeTheCorrectURL(URL)
-
+        print("WORKING")
         if url_type == 'yup this is playlist':
-            playlist_url = URL
+            playlist_url = getPlaylistUrl(URL)
         elif url_type == 'yup this is watch window':
-            playlist_url = getPlaylistUrlFromWatchWindow(URL)
+            playlist_url = getPlaylistUrl(URL)
         else:
             # handling if user entered wrong url
             return render(request, 'home/playlist.html')
