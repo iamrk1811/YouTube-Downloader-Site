@@ -2,7 +2,12 @@ from os import pipe
 import re
 import requests
 from bs4 import BeautifulSoup
+from django.conf import settings
 
+import json
+secret_config_file = open(settings.BASE_DIR + '/secret_config.json')
+secret_data = json.load(secret_config_file)
+API_KEY = secret_data['API_KEY']
 
 
 def giveMeTheCorrectURL(url_to_be_checked):
@@ -61,7 +66,6 @@ def firstVideoLinkFromPlaylist(url):
     """this function will return the first video link with playlist id from playlist web page"""
     playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
     r = requests.get(url)
-    # soup = BeautifulSoup(r.content, 'html.parser')
     
     regex = r"{\"url\":\"/watch\?v=[a-zA-Z0-9_-]{11}"
     

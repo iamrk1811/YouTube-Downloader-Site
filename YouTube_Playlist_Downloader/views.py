@@ -1,12 +1,14 @@
-from django.http.response import HttpResponseRedirect
-from django.shortcuts import redirect, render
-from pytube import YouTube, streams
-from bs4 import BeautifulSoup
-import requests
+from django.shortcuts import render
 import urllib.parse
 from django.http import JsonResponse
 from .utils import *
 from .pafy_utils import *
+import re
+from .utils import API_KEY
+import pafy
+
+pafy.set_api_key(API_KEY)
+
 
 # Code for single START
 def giveMeVideoID(URL):
@@ -56,7 +58,6 @@ def homeSingle(request):
     if request.method == 'POST' and request.POST.get('single_video_input'):
         URL = request.POST.get('single_video_input')
         single_video_id = giveMeVideoID(URL)
-
         if single_video_id is not None:
             video = None
             try:
