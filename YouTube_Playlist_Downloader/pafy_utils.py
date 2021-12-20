@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
-from .utils import API_KEY
+from django.conf import settings
 
-youtube = build('youtube', 'v3', developerKey=API_KEY)
+youtube = build('youtube', 'v3', developerKey=settings.API_KEY)
 
 
 def getVideoLinks(playlist : str):

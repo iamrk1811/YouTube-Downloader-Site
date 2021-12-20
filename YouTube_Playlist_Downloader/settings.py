@@ -15,12 +15,17 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+import json
+secret_config_file = open(BASE_DIR + '/secret_config.json')
+SECRECT_DATA = json.load(secret_config_file)
+
+API_KEY = SECRECT_DATA['API_KEY']
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'z_i^y)^1yh22)i4a-g*i3hhpq8t%nr67*rpyx&xd-%v0kay@3)'
+SECRET_KEY = SECRECT_DATA['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

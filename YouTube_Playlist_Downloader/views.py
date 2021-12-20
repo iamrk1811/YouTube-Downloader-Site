@@ -4,10 +4,10 @@ from django.http import JsonResponse
 from .utils import *
 from .pafy_utils import *
 import re
-from .utils import API_KEY
+from django.conf import settings
 import pafy
 
-pafy.set_api_key(API_KEY)
+pafy.set_api_key(settings.API_KEY)
 
 
 # Code for single START

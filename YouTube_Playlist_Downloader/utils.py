@@ -2,12 +2,6 @@ from os import pipe
 import re
 import requests
 from bs4 import BeautifulSoup
-from django.conf import settings
-
-import json
-secret_config_file = open(settings.BASE_DIR + '/secret_config.json')
-secret_data = json.load(secret_config_file)
-API_KEY = secret_data['API_KEY']
 
 
 def giveMeTheCorrectURL(url_to_be_checked):
