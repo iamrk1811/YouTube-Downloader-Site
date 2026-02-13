@@ -27,14 +27,14 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto">
-                        <li class="nav-item {% if request.path == '/' %}active{% endif %}">
-                            <a class="nav-link" href="/">Single</a>
+                        <li class="nav-item {% if request.resolver_match.url_name == 'home_single' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'home_single' %}">Single</a>
                         </li>
-                        <li class="nav-item {% if request.path == '/playlist/' %}active{% endif %}">
-                            <a class="nav-link" href="/playlist">Playlist</a>
+                        <li class="nav-item {% if request.resolver_match.url_name == 'home_playlist' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'home_playlist' %}">Playlist</a>
                         </li>
-                        <li class="nav-item {% if request.path == '/how-to-use/' %}active{% endif %}">
-                            <a class="nav-link" href="/how-to-use">How To Use</a>
+                        <li class="nav-item {% if request.resolver_match.url_name == 'home_how_to_use' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'home_how_to_use' %}">How To Use</a>
                         </li>
                     </ul>
                 </div>
