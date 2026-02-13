@@ -25,17 +25,28 @@ def home_playlist(request):
     """Handles requests for playlist information."""
     if request.method == "POST" and request.POST.get("playlist_link_name"):
         url = request.POST.get("playlist_link_name")
+        quality = request.POST.get("video_quality", "360")
+        prefix = request.POST.get("prefix") == "true"
+        reduce = request.POST.get("reduce") == "true"
 
         url_type = youtube_utils.detect_url_type(url)
         if url_type in [
             youtube_utils.URL_TYPE_PLAYLIST,
             youtube_utils.URL_TYPE_WATCH_WINDOW,
         ]:
-            video_links = youtube_utils.get_playlist_video_links(url)
-            if video_links:
-                return JsonResponse({"allVideoList": video_links})
+            # Use the optimized full info extraction
+            video_data = youtube_utils.get_playlist_full_info(
+                url, quality=quality, prefix=prefix, reduce=reduce
+            )
+            if video_data:
+                return JsonResponse({"allVideoData": video_data})
+            return JsonResponse(
+                {
+                    "error": "Failed to extract playlist information or playlist is empty."
+                }
+            )
 
-        return render(request, "home/playlist.html")
+        return JsonResponse({"error": "Invalid YouTube Playlist URL."})
 
     return render(request, "home/playlist.html")
 

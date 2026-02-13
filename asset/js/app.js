@@ -32,6 +32,9 @@ $(document).ready(function () {
       url: "",
       data: {
         playlist_link_name: $("#playlist_link_id").val(),
+        video_quality: $("#playlist_quality_id :selected").val(),
+        prefix: $("#prefix_id").is(":checked"),
+        reduce: $("#reduce_id").is(":checked"),
         csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
       },
       async: true,
@@ -41,58 +44,44 @@ $(document).ready(function () {
         $("#single_single_video_id").fadeIn("slow", function () {});
         $("#footer").fadeIn("slow", function () {});
         page_pre_loader.classList.add("d-none");
-        // Parsing JsonResponse to JSON Object
-        var json_data = JSON.parse(JSON.stringify(data));
 
-        // var number_of_videos = Object.keys(json_data.allVideoList).length;
-        // Looping through all video list link
-        // And sending GET request to get download url, title, thumbnail
-        for (i = 0; i < Object.keys(json_data.allVideoList).length; i++) {
-          $.ajax({
-            type: "GET",
-            url: $("#playlist_form").data("ajax-url"),
-            data: {
-              video_no: i,
-              video_quality: $("#playlist_quality_id :selected").val(),
-              prefix: $("#prefix_id").is(":checked"),
-              reduce: $("#reduce_id").is(":checked"),
-              video_link: Object.values(json_data.allVideoList)[i],
-            },
-            async: true,
-            // Success function for single video output
-            success: function (data) {
-              // Working with progress bar
-              progress_no += 1;
-              progress = Math.floor(
-                (progress_no / Object.keys(json_data.allVideoList).length) *
-                  100,
-              );
-              progressBar.style.width = progress.toString() + "%";
-              // Parsing JsonResponse to JSON Object
-              var ajax_json_data = JSON.parse(JSON.stringify(data));
-              // Getting download url
-              download_url = ajax_json_data["video_download_url"] + "\n";
-              // Getting thumbnail, title, download url, video number
-              valid_download_url =
-                ajax_json_data["video_download_url"] == ""
-                  ? "#"
-                  : ajax_json_data["video_download_url"];
-              single_video_html =
-                "<tr><td>" +
-                ajax_json_data["video_number"].toString() +
-                "</td><td><img class='img-fluid thumbnail py-2' src='" +
-                ajax_json_data["video_thumbnail"] +
-                "' alt='Thumbnail'></td><td>" +
-                ajax_json_data["video_title"] +
-                "</td><td><a href='" +
-                valid_download_url +
-                "'><button class='download-button'>Download</button></a></td></tr>";
-              // Showing to front end
-              $("#single_video_table").append(single_video_html);
-              $("#playlist_result_area_id").append(download_url);
-            },
-          });
+        if (data.allVideoData) {
+          const videos = data.allVideoData;
+          const totalVideos = videos.length;
+
+          for (i = 0; i < totalVideos; i++) {
+            const video = videos[i];
+
+            // Getting download url
+            const downloadUrlLine = video["video_download_url"] + "\n";
+
+            const validDownloadUrl =
+              video["video_download_url"] == ""
+                ? "#"
+                : video["video_download_url"];
+
+            const single_video_html =
+              "<tr><td>" +
+              video["video_number"].toString() +
+              "</td><td><img class='img-fluid thumbnail py-2' src='" +
+              video["video_thumbnail"] +
+              "' alt='Thumbnail'></td><td>" +
+              video["video_title"] +
+              "</td><td><a href='" +
+              validDownloadUrl +
+              "'><button class='download-button'>Download</button></a></td></tr>";
+
+            // Showing to front end
+            $("#single_video_table").append(single_video_html);
+            $("#playlist_result_area_id").append(downloadUrlLine);
+          }
+
+          // Complete progress bar
+          progressBar.style.width = "100%";
+        } else if (data.error) {
+          alert(data.error);
         }
+
         // Setting progress bar no to zero
         progress_no = 0;
       },
