@@ -1,7 +1,7 @@
 from django.shortcuts import render
 import urllib.parse
 from django.http import JsonResponse
-from .youtube_utils import give_me_video_id, get_video_links, give_me_the_correct_url, get_playlist_url
+from .youtube_utils import give_me_video_id, get_video_links, give_me_the_correct_url_type, get_playlist_url, URL_TYPE_PLAYLIST, URL_TYPE_WATCH_WINDOW
 import yt_dlp
 
 YOUTUBE_VIDEO_URL_PREFIX = "https://www.youtube.com/watch?v="
@@ -104,11 +104,8 @@ def homePlaylist(request):
         # create final URL
         playlist_url = ""
 
-        url_type = give_me_the_correct_url(URL)
-        print("WORKING")
-        if url_type == "yup this is playlist":
-            playlist_url = get_playlist_url(URL)
-        elif url_type == "yup this is watch window":
+        url_type = give_me_the_correct_url_type(URL)
+        if url_type == URL_TYPE_PLAYLIST or url_type == URL_TYPE_WATCH_WINDOW:
             playlist_url = get_playlist_url(URL)
         else:
             # handling if user entered wrong url
