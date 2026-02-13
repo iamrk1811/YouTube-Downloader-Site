@@ -1,67 +1,19 @@
 from django.shortcuts import render
 import urllib.parse
 from django.http import JsonResponse
-from .utils import *
-from .pafy_utils import *
-import re
-from django.conf import settings
+from .youtube_utils import give_me_video_id, get_video_links, give_me_the_correct_url, get_playlist_url
 import yt_dlp
 
-
-# Code for single START
-def giveMeVideoID(URL):
-    # check point for mobile
-    regex_for_mobile = r"https://www.youtu.be/[0-9a-zA-Z-_]{11}"
-    regex_for_mobile_without_www = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
-    regex_for_computer = r"https://www.youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
-    regex_for_computer_without_www = r"https://youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
-
-    matches_for_mobile = re.finditer(regex_for_mobile, URL, re.MULTILINE)
-    matches_for_mobile_without_www = re.finditer(
-        regex_for_mobile_without_www, URL, re.MULTILINE
-    )
-    matches_for_computer = re.finditer(regex_for_computer, URL, re.MULTILINE)
-    matches_for_computer_without_www = re.finditer(
-        regex_for_computer_without_www, URL, re.MULTILINE
-    )
-
-    # for loop to get video id from mobile link
-    for matchNum, match in enumerate(matches_for_mobile, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://www.youtu.be/", "")
-            return video_id
-
-    # for loop to get video id from mobile link without www
-    for matchNum, match in enumerate(matches_for_mobile_without_www, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://youtu.be/", "")
-            return video_id
-    # for loop to get video id from computer link
-    for matchNum, match in enumerate(matches_for_computer, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://www.youtube.com/watch?v=", "")
-            return video_id
-    # for loop to get video from computer link without www
-    for matchNum, match in enumerate(matches_for_computer_without_www, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://youtube.com/watch?v=", "")
-            return video_id
-
-
-# Code for single END
+YOUTUBE_VIDEO_URL_PREFIX = "https://www.youtube.com/watch?v="
 
 
 # Handling Single Page
 def homeSingle(request):
     if request.method == "POST" and request.POST.get("single_video_input"):
         URL = request.POST.get("single_video_input")
-        single_video_id = giveMeVideoID(URL)
+        single_video_id = give_me_video_id(URL)
         if single_video_id is not None:
-            video_url = "https://www.youtube.com/watch?v=" + single_video_id
+            video_url = YOUTUBE_VIDEO_URL_PREFIX + single_video_id
             try:
                 ydl_opts = {
                     "quiet": True,
@@ -108,6 +60,10 @@ def homeSingle(request):
                                 all_streams["360"] = (
                                     f.get("url") + video_title_url_encoded
                                 )
+                            elif height == 1080:
+                                all_streams["1080"] = (
+                                    f.get("url") + video_title_url_encoded
+                                )
 
                     # Fallback if specific heights not found
                     if not all_streams:
@@ -148,18 +104,18 @@ def homePlaylist(request):
         # create final URL
         playlist_url = ""
 
-        url_type = giveMeTheCorrectURL(URL)
+        url_type = give_me_the_correct_url(URL)
         print("WORKING")
         if url_type == "yup this is playlist":
-            playlist_url = getPlaylistUrl(URL)
+            playlist_url = get_playlist_url(URL)
         elif url_type == "yup this is watch window":
-            playlist_url = getPlaylistUrl(URL)
+            playlist_url = get_playlist_url(URL)
         else:
             # handling if user entered wrong url
             return render(request, "home/playlist.html")
 
         # if everything goes right then proceed to get all video link from watch window web page
-        allVideoList = getVideoLinks(playlist_url)
+        allVideoList = get_video_links(playlist_url)
 
         data = {"allVideoList": allVideoList}
         return JsonResponse(data)
