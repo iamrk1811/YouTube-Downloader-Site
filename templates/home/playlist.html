@@ -15,13 +15,7 @@ Playlist Downloader - Playlist{% endblock %} {% block body %}
   <div class="container">
     <div class="container">
       <div class="form-and-playlist-result">
-        <form
-          action=""
-          method="POST"
-          class="my-5"
-          id="playlist_form"
-          data-ajax-url="{% url 'playlist_ajax' %}"
-        >
+        <form action="" method="POST" class="my-5" id="playlist_form">
           {% csrf_token %}
           <label for="playlist">
             <h4>YouTube Playlist Downloader by RK</h4>

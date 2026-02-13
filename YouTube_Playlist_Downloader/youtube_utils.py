@@ -1,11 +1,7 @@
 import re
 import urllib.parse
-from django.conf import settings
-from googleapiclient.discovery import build
 import yt_dlp
-
-# YouTube API client initialization
-youtube = build("youtube", "v3", developerKey=settings.API_KEY)
+import concurrent.futures
 
 # URL Type Constants
 URL_TYPE_NONE = 0
@@ -102,101 +98,6 @@ def get_video_info(video_url: str) -> dict | None:
     except Exception as e:
         print(f"Extraction Error: {e}")
         return None
-
-
-def get_playlist_video_links(playlist_url: str) -> list[str]:
-    """Retrieves all video URLs from a playlist using YouTube API."""
-    playlist_id = extract_playlist_id(playlist_url)
-    if not playlist_id:
-        return []
-
-    video_links = []
-    next_page_token = None
-
-    while True:
-        request = youtube.playlistItems().list(
-            part="contentDetails",
-            playlistId=playlist_id,
-            maxResults=50,
-            pageToken=next_page_token,
-        )
-        response = request.execute()
-
-        for item in response.get("items", []):
-            video_id = item["contentDetails"]["videoId"]
-            video_links.append(f"https://www.youtube.com/watch?v={video_id}")
-
-        next_page_token = response.get("nextPageToken")
-        if not next_page_token:
-            break
-
-    return video_links
-
-
-def get_playlist_item_download_info(
-    video_url: str,
-    video_no: int,
-    quality: str = "360",
-    prefix: bool = False,
-    reduce: bool = False,
-) -> dict:
-    """Fetches download info for a single video in a playlist context."""
-    ydl_opts = {
-        "quiet": True,
-        "no_warnings": True,
-        "format": "best",
-    }
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=False)
-            title = info.get("title", "No Title")
-            display_title = f"{video_no + 1}. {title}" if prefix else title
-            title_encoded = "&title=" + urllib.parse.quote(display_title, safe="")
-
-            download_url = ""
-            target_height = int(quality) if quality.isdigit() else 360
-
-            formats = info.get("formats", [])
-            for f in formats:
-                if (
-                    f.get("ext") == "mp4"
-                    and f.get("acodec") != "none"
-                    and f.get("vcodec") != "none"
-                ):
-                    if f.get("height") == target_height:
-                        download_url = f.get("url")
-                        break
-
-            # Fallback
-            if not download_url and reduce:
-                for f in formats:
-                    if (
-                        f.get("ext") == "mp4"
-                        and f.get("acodec") != "none"
-                        and f.get("vcodec") != "none"
-                    ):
-                        download_url = f.get("url")
-                        break
-
-            return {
-                "video_number": video_no + 1,
-                "video_title": title,
-                "video_thumbnail": info.get("thumbnail", ""),
-                "video_download_url": (download_url + title_encoded)
-                if download_url
-                else "",
-            }
-    except Exception as e:
-        print(f"Playlist Item Error: {e}")
-        return {
-            "video_number": "-1",
-            "video_title": "Video Unavailable",
-            "video_thumbnail": "",
-            "video_download_url": "",
-        }
-
-
-import concurrent.futures
 
 
 def get_playlist_full_info(

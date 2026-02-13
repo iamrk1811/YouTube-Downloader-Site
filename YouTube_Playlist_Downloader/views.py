@@ -51,23 +51,6 @@ def home_playlist(request):
     return render(request, "home/playlist.html")
 
 
-def playlist_ajax(request):
-    """Handles AJAX requests for individual video details within a playlist."""
-    if request.method == "GET" and request.GET.get("video_link"):
-        video_link = request.GET.get("video_link")
-        video_no = int(request.GET.get("video_no", 0))
-        quality = request.GET.get("video_quality", "360")
-        prefix = request.GET.get("prefix") == "true"
-        reduce = request.GET.get("reduce") == "true"
-
-        data = youtube_utils.get_playlist_item_download_info(
-            video_link, video_no, quality=quality, prefix=prefix, reduce=reduce
-        )
-        return JsonResponse(data)
-
-    return JsonResponse({"error": "Invalid request"}, status=400)
-
-
 def home_how_to_use(request):
     """Renders the how-to-use page."""
     return render(request, "home/how-to-use.html")
