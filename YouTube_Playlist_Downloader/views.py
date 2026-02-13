@@ -25,36 +25,30 @@ def home_playlist(request):
     """Handles requests for playlist information."""
     if request.method == "POST" and request.POST.get("playlist_link_name"):
         url = request.POST.get("playlist_link_name")
+        quality = request.POST.get("video_quality", "360")
+        prefix = request.POST.get("prefix") == "true"
+        reduce = request.POST.get("reduce") == "true"
 
         url_type = youtube_utils.detect_url_type(url)
         if url_type in [
             youtube_utils.URL_TYPE_PLAYLIST,
             youtube_utils.URL_TYPE_WATCH_WINDOW,
         ]:
-            video_links = youtube_utils.get_playlist_video_links(url)
-            if video_links:
-                return JsonResponse({"allVideoList": video_links})
+            # Use the optimized full info extraction
+            video_data = youtube_utils.get_playlist_full_info(
+                url, quality=quality, prefix=prefix, reduce=reduce
+            )
+            if video_data:
+                return JsonResponse({"allVideoData": video_data})
+            return JsonResponse(
+                {
+                    "error": "Failed to extract playlist information or playlist is empty."
+                }
+            )
 
-        return render(request, "home/playlist.html")
+        return JsonResponse({"error": "Invalid YouTube Playlist URL."})
 
     return render(request, "home/playlist.html")
-
-
-def playlist_ajax(request):
-    """Handles AJAX requests for individual video details within a playlist."""
-    if request.method == "GET" and request.GET.get("video_link"):
-        video_link = request.GET.get("video_link")
-        video_no = int(request.GET.get("video_no", 0))
-        quality = request.GET.get("video_quality", "360")
-        prefix = request.GET.get("prefix") == "true"
-        reduce = request.GET.get("reduce") == "true"
-
-        data = youtube_utils.get_playlist_item_download_info(
-            video_link, video_no, quality=quality, prefix=prefix, reduce=reduce
-        )
-        return JsonResponse(data)
-
-    return JsonResponse({"error": "Invalid request"}, status=400)
 
 
 def home_how_to_use(request):
