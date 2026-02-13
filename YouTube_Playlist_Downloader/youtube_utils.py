@@ -1,231 +1,196 @@
-from googleapiclient.discovery import build
-from django.conf import settings
 import re
-import requests
-from bs4 import BeautifulSoup
-youtube = build('youtube', 'v3', developerKey=settings.API_KEY)
+import urllib.parse
+from django.conf import settings
+from googleapiclient.discovery import build
+import yt_dlp
 
-def give_me_video_id(URL):
-    # check point for mobile
-    regex_for_mobile = r"https://www.youtu.be/[0-9a-zA-Z-_]{11}"
-    regex_for_mobile_without_www = r"https://youtu.be/[0-9a-zA-Z-_]{11}"
-    regex_for_computer = r"https://www.youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
-    regex_for_computer_without_www = r"https://youtube.com/watch\?v=[0-9a-zA-Z-_]{11}"
+# YouTube API client initialization
+youtube = build("youtube", "v3", developerKey=settings.API_KEY)
 
-    matches_for_mobile = re.finditer(regex_for_mobile, URL, re.MULTILINE)
-    matches_for_mobile_without_www = re.finditer(
-        regex_for_mobile_without_www, URL, re.MULTILINE
-    )
-    matches_for_computer = re.finditer(regex_for_computer, URL, re.MULTILINE)
-    matches_for_computer_without_www = re.finditer(
-        regex_for_computer_without_www, URL, re.MULTILINE
-    )
+# URL Type Constants
+URL_TYPE_NONE = 0
+URL_TYPE_PLAYLIST = 1
+URL_TYPE_WATCH_WINDOW = 2
 
-    # for loop to get video id from mobile link
-    for matchNum, match in enumerate(matches_for_mobile, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://www.youtu.be/", "")
-            return video_id
-
-    # for loop to get video id from mobile link without www
-    for matchNum, match in enumerate(matches_for_mobile_without_www, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://youtu.be/", "")
-            return video_id
-    # for loop to get video id from computer link
-    for matchNum, match in enumerate(matches_for_computer, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://www.youtube.com/watch?v=", "")
-            return video_id
-    # for loop to get video from computer link without www
-    for matchNum, match in enumerate(matches_for_computer_without_www, start=1):
-        if matchNum == 1:
-            total_match = match.group()
-            video_id = total_match.replace("https://youtube.com/watch?v=", "")
-            return video_id
-    return None
+# Regex Patterns
+YOUTUBE_VIDEO_ID_REGEX = re.compile(
+    r"(?:https?://)?(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})"
+)
+YOUTUBE_PLAYLIST_ID_REGEX = re.compile(r"list=([a-zA-Z0-9_-]{34})")
 
 
-def get_video_links(playlist : str):
-    """Accepts playlist id and returns all the videos link"""
-
-    playlist = playlist.replace("https://www.youtube.com/playlist?list=", "")
-
-    request = youtube.playlists().list(
-        part="contentDetails",
-        id=playlist,
-        maxResults=50
-    )
-    response = request.execute()
-
-    total_videos = response['items'][0]['contentDetails']['itemCount']
-
-    fetch_till_now = 0
-
-    nextPageToken = ''
-    items = {}
-    video_number = 0
+def extract_video_id(url: str) -> str | None:
+    """Extracts the YouTube video ID from a given URL."""
+    match = YOUTUBE_VIDEO_ID_REGEX.search(url)
+    return match.group(1) if match else None
 
 
-    while fetch_till_now < total_videos:
-        if fetch_till_now == 0:
-            request = youtube.playlistItems().list(
-                part="contentDetails",
-                playlistId=playlist,
-                maxResults=50,
-            )
-
-            response = request.execute()
-            result_fetched = response['pageInfo']['resultsPerPage']
-            fetch_till_now += result_fetched
-            try:
-                nextPageToken = response['nextPageToken']
-            except Exception as e:
-                pass
-
-            videos = response['items']
-            total_videos_get = len(videos)
-            counter = 0
-
-            while counter < total_videos_get:
-                items[video_number] = "https://www.youtube.com/watch?v=" + videos[counter]['contentDetails']['videoId']
-                counter += 1
-                video_number += 1
-
-        else:
-            request = youtube.playlistItems().list(
-                part="contentDetails",
-                playlistId=playlist,
-                maxResults=50,
-                pageToken=nextPageToken
-            )
-
-            response = request.execute()
-            result_fetched = response['pageInfo']['resultsPerPage']
-            fetch_till_now += result_fetched
-            try:
-                nextPageToken = response['nextPageToken']
-            except Exception as e:
-                pass
-
-            videos = response['items']
-            total_videos_get = len(videos)
-            counter = 0
-
-            while counter < total_videos_get:
-                items[video_number] = "https://www.youtube.com/watch?v=" + videos[counter]['contentDetails']['videoId']
-                counter += 1
-                video_number += 1
-
-    video_list = list(items.values())
-
-    return video_list
+def extract_playlist_id(url: str) -> str | None:
+    """Extracts the YouTube playlist ID from a given URL."""
+    match = YOUTUBE_PLAYLIST_ID_REGEX.search(url)
+    return match.group(1) if match else None
 
 
-def give_me_the_correct_url(url_to_be_checked):
-    """checking the input url to see either it is playlist link or watch window link
-        , if it is a playlist link this function will return watch window link"""
-
-    # regex for match playlist and watch window link
-    regex_for_playlist = r"https:\/\/www.youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
-    regex_for_playlist_without_www = r"https:\/\/youtube.com\/playlist\?list=[a-zA-Z0-9_-]{34}"
-    regex_for_watch_window = r"https:\/\/www.youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
-    regex_for_watch_window_without_www = r"https:\/\/youtube.com\/watch\?v=[0-9A-Za-z-_]+&list=[a-zA-Z0-9_-]{34}"
-
-    test_str = url_to_be_checked
-
-    # Checking for playlist link
-    matches_for_playlist = re.finditer(regex_for_playlist, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_playlist, start=1):
-        if matchNum:
-            result = "yup this is playlist"
-            return result
-    # Checking for playlist link without www
-    matches_for_playlist_without_www = re.finditer(regex_for_playlist_without_www, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_playlist_without_www, start=1):
-        if matchNum:
-            result = "yup this is playlist"
-            return result
-
-    # Checking for watch window
-    matches_for_watch_window = re.finditer(regex_for_watch_window, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_watch_window, start=1):
-        if matchNum:
-            result = "yup this is watch window"
-            return result
-    # Checking for watch window without www
-    matches_for_watch_window_without_www = re.finditer(regex_for_watch_window_without_www, test_str, re.MULTILINE)
-    for matchNum, match in enumerate(matches_for_watch_window_without_www, start=1):
-        if matchNum:
-            result = "yup this is watch window"
-            return result
-
-    return "not match found"
+def format_duration(seconds: int) -> str:
+    """Formats duration in seconds to HH:MM:SS or MM:SS."""
+    if not seconds:
+        return "00:00"
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours > 0:
+        return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+    return f"{int(minutes):02}:{int(seconds):02}"
 
 
-
-def get_playlist_url(url : str):
-    """This function takes URL of watch window and return playlist URL"""
-
-    prefix_url = "https://www.youtube.com/playlist?"
-
-    playlist_id = re.findall(r"list=[a-zA-Z0-9_-]{34}", url)[0]
-
-    return prefix_url + playlist_id
+def detect_url_type(url: str) -> int:
+    """Detects whether the URL is a playlist, watch window with playlist, or a single video."""
+    if "/playlist?list=" in url:
+        return URL_TYPE_PLAYLIST
+    if "list=" in url and "v=" in url:
+        return URL_TYPE_WATCH_WINDOW
+    return URL_TYPE_NONE
 
 
-def first_video_link_from_playlist(url):
-    """this function will return the first video link with playlist id from playlist web page"""
-    playlist_id = url.replace("https://www.youtube.com/playlist?list=", "")
-    r = requests.get(url)
+def get_video_info(video_url: str) -> dict | None:
+    """
+    Fetches video information using yt-dlp.
+    Returns a dictionary with title, time, thumbnail, and stream URLs.
+    """
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "format": "best",
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            title = info.get("title", "No Title")
+            video_title_encoded = "&title=" + urllib.parse.quote(title, safe="")
 
-    regex = r"{\"url\":\"/watch\?v=[a-zA-Z0-9_-]{11}"
+            streams = {}
+            for f in info.get("formats", []):
+                # We want mp4 with both audio and video
+                if (
+                    f.get("ext") == "mp4"
+                    and f.get("acodec") != "none"
+                    and f.get("vcodec") != "none"
+                ):
+                    height = f.get("height")
+                    if height in [360, 720, 1080]:
+                        streams[str(height)] = f.get("url") + video_title_encoded
 
-    page_content = r.content.decode('utf-8')
+            # Fallback if preferred resolutions not found
+            if not streams:
+                for f in info.get("formats", []):
+                    if (
+                        f.get("ext") == "mp4"
+                        and f.get("acodec") != "none"
+                        and f.get("vcodec") != "none"
+                    ):
+                        streams[str(f.get("height"))] = (
+                            f.get("url") + video_title_encoded
+                        )
+                        break
 
-    matches = re.finditer(regex, page_content, re.MULTILINE)
+            return {
+                "title": title,
+                "time": format_duration(info.get("duration", 0)),
+                "thumbnail": info.get("thumbnail", ""),
+                "streams": streams,
+                "error": "",
+            }
+    except Exception as e:
+        print(f"Extraction Error: {e}")
+        return None
 
-    url = "https://www.youtube.com"
 
-    for matchNum, match in enumerate(matches, start=1):
-                if matchNum == 1:
-                    url += match.group().replace('''{"url":"''', "")
-                    url += "&list=" + playlist_id
-                    return url
+def get_playlist_video_links(playlist_url: str) -> list[str]:
+    """Retrieves all video URLs from a playlist using YouTube API."""
+    playlist_id = extract_playlist_id(playlist_url)
+    if not playlist_id:
+        return []
+
+    video_links = []
+    next_page_token = None
+
+    while True:
+        request = youtube.playlistItems().list(
+            part="contentDetails",
+            playlistId=playlist_id,
+            maxResults=50,
+            pageToken=next_page_token,
+        )
+        response = request.execute()
+
+        for item in response.get("items", []):
+            video_id = item["contentDetails"]["videoId"]
+            video_links.append(f"https://www.youtube.com/watch?v={video_id}")
+
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+
+    return video_links
 
 
-def give_me_all_video_list(url):
-    """this function will return first video link with playlist id from watch window"""
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content, 'html.parser')
+def get_playlist_item_download_info(
+    video_url: str,
+    video_no: int,
+    quality: str = "360",
+    prefix: bool = False,
+    reduce: bool = False,
+) -> dict:
+    """Fetches download info for a single video in a playlist context."""
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "format": "best",
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            title = info.get("title", "No Title")
+            display_title = f"{video_no + 1}. {title}" if prefix else title
+            title_encoded = "&title=" + urllib.parse.quote(display_title, safe="")
 
-    regex = r"/watch\?v=[a-zA-Z0-9-_]{11}\\u0026list=[a-zA-Z0-9-_]{34}\\u0026index=[0-9]+"
+            download_url = ""
+            target_height = int(quality) if quality.isdigit() else 360
 
-    response_script = str(soup.findAll('script')[32])
+            formats = info.get("formats", [])
+            for f in formats:
+                if (
+                    f.get("ext") == "mp4"
+                    and f.get("acodec") != "none"
+                    and f.get("vcodec") != "none"
+                ):
+                    if f.get("height") == target_height:
+                        download_url = f.get("url")
+                        break
 
-    matches = re.finditer(regex, response_script, re.MULTILINE)
+            # Fallback
+            if not download_url and reduce:
+                for f in formats:
+                    if (
+                        f.get("ext") == "mp4"
+                        and f.get("acodec") != "none"
+                        and f.get("vcodec") != "none"
+                    ):
+                        download_url = f.get("url")
+                        break
 
-    videos_list = []
-    for matchNum, match in enumerate(matches, start=1):
-        videos_list.append(match.group())
-
-    videos_set = set(videos_list)
-    videos_dict = {}
-    for video in videos_set:
-        try:
-            pass
-            # print(int(str(re.findall(r"index=[0-9]+", video)).replace("index=", "")), 10)
-        except Exception as e:
-            pass
-        videos_dict[str(re.findall(r"index=[0-9]+", video)).replace("index=", "")] = "https://www.youtube.com" + str(re.match(r"/watch\?v=[a-zA-Z0-9-_]{11}", video))
-
-    all_video_list = []
-    values = videos_dict.values()
-    all_video_list = list(values)
-
-    print(all_video_list)
-
-    return all_video_list
+            return {
+                "video_number": video_no + 1,
+                "video_title": title,
+                "video_thumbnail": info.get("thumbnail", ""),
+                "video_download_url": (download_url + title_encoded)
+                if download_url
+                else "",
+            }
+    except Exception as e:
+        print(f"Playlist Item Error: {e}")
+        return {
+            "video_number": "-1",
+            "video_title": "Video Unavailable",
+            "video_thumbnail": "",
+            "video_download_url": "",
+        }
